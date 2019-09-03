@@ -1,7 +1,7 @@
 from .mock_base import MockBase
-import json
+from ngenic.models import Tune
 
-tune_json = """
+test_json = """
 {
     "isInstalled": true,
     "isNetworkConnected": true,
@@ -14,10 +14,4 @@ tune_json = """
 """
 class MockTune(MockBase):
     def __init__(self):
-        super(MockTune, self).__init__()
-
-    def mock_get_all(*args, **kwargs):
-        return MockBase.MockGetResponse(json.loads("[%s,%s]" % (tune_json, tune_json)), 200)
-
-    def mock_get(*args, **kwargs):
-        return MockBase.MockGetResponse(json.loads("%s" % tune_json), 200)
+        super(MockTune, self).__init__(Tune, test_json)

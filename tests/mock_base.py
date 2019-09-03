@@ -1,24 +1,55 @@
+from unittest import mock
+from .const import *
+import json
+
 class MockBase(object):
-    #def __init__(self, json_data, status_code):
 
-    class MockGetResponse(object):
-        
-        def __init__(self, json_data, status_code):
-            self.json_data = json_data
-            self.status_code = status_code
-        
-        def json(self):
-            return self.json_data
+    def __init__(self, instance_class, instance_json):
+        self._instance_class = instance_class
+        self._instance_json = instance_json
 
-    class MockPostResponse(object):
-        
-        def __init__(self, json_data, status_code):
-            self.json_data = json_data
-            self.status_code = status_code
+    def single_instance(self, **kwargs):
+        """Get a single instance of this mock class, without calling any APIs."""
+        return self._instance_class(API_TEST_TOKEN, json.loads(self._instance_json), **kwargs)
 
-        def json(self):
-            return self.json_data
+    def multi_instance(self, **kwargs):
+        """Get a list of instance of this mock class, without calling any APIs."""
+        return list(
+            self._instance_class(API_TEST_TOKEN, json.loads(self._instance_json), **kwargs),
+            self._instance_class(API_TEST_TOKEN, json.loads(self._instance_json), **kwargs)
+        )
 
-    def mock_get(*args, **kwargs):
-        # Raise not-implemented-error instead?
-        pass
+    def mock_response(self, *args, **kwargs):
+        """Get a mock Response object for a single instance of this class."""
+        return self._mock_response(content="%s" % self._instance_json)
+
+    def mock_list_response(self, *args, **kwargs):
+        """Get a mock Response object for a list of instance of this class."""
+        return self._mock_response(content="[%s,%s]" % (self._instance_json, self._instance_json))
+
+    """
+    example text that mocks requests.get and
+    returns a mock Response object
+    """
+    def _mock_response(
+            self,
+            status=200,
+            content="{}",
+            is_json=True,
+            raise_for_status=None,
+            **kwargs):
+        """Create a mock Response object that can be used to mock e.g. requests.get"""
+        mock_resp = mock.Mock()
+        # mock raise_for_status call w/optional error
+        mock_resp.raise_for_status = mock.Mock()
+        if raise_for_status:
+            mock_resp.raise_for_status.side_effect = raise_for_status
+        # set status code and content
+        mock_resp.status_code = status
+        mock_resp.content = content
+        # add json data if provided
+        if is_json:
+            mock_resp.json = mock.Mock(
+                return_value=json.loads(content)
+            )
+        return mock_resp

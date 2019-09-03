@@ -29,8 +29,6 @@ class TestNgenic(UnitTest):
 
     @mock.patch("requests.get", side_effect=MockRoom().mock_response)
     def test_rooms_get(self, mock_response):
-        ngenic = Ngenic(token=API_TEST_TOKEN)
-
         tune = MockTune().single_instance()
         room = tune.room(ROOM_UUID)
 
@@ -39,10 +37,18 @@ class TestNgenic(UnitTest):
 
     @mock.patch("requests.get", side_effect=MockRoom().mock_list_response)
     def test_tunes_get_all(self, mock_list_response):
-        ngenic = Ngenic(token=API_TEST_TOKEN)
-
         tune = MockTune().single_instance()
         rooms = tune.rooms()
 
         assert isinstance(rooms, list)
         assert all(isinstance(x, Room) for x in rooms)
+
+    @mock.patch("requests.put", side_effect=MockRoom().mock_response)
+    def test_rooms_update(self, mock_response):
+        tune = MockTune().single_instance()
+        room = MockRoom().single_instance(tune=tune)
+        room["name"] = "Hallway"
+        room.update()
+
+        assert isinstance(room, Room)
+        assert room["name"] == "Hallway"

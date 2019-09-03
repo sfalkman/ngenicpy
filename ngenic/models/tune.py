@@ -1,6 +1,7 @@
 import json
 from .base import NgenicBase
 from .room import Room
+from .node import Node
 from ..const import API_PATH
 
 class Tune(NgenicBase):
@@ -9,13 +10,13 @@ class Tune(NgenicBase):
 
     def uuid(self):
         """Get the tune UUID"""
-        
+
         # If a tune was fetched with the list API, it contains "tuneUuid"
         # If it was fetched directly (with UUID), it contains "uuid"
         try:
             return self["tuneUuid"]
         except AttributeError:
-            return self["uuid"]
+            return super().uuid()
 
     def rooms(self):
         """List all Rooms associated with a Tune. A Room contains an indoor sensor.
@@ -40,3 +41,27 @@ class Tune(NgenicBase):
         """
         url = API_PATH["rooms"].format(tuneUuid=self.uuid(), roomUuid=roomUuid)
         return self._parse_new_instance(url, Room, tune=self)
+
+    def nodes(self):
+        """List all Nodes associated with a Tune. A Node is a logical network entity.
+
+        :return:
+            a list of nodes
+        :rtype:
+            `list(~ngenic.models.node.Node)`
+        """
+        url = API_PATH["nodes"].format(tuneUuid=self.uuid(), nodeUuid="")
+        return self._parse_new_instance(url, Node, tune=self)
+
+    def node(self, nodeUuid):
+        """Get data about a Node. A Node is a logical network entity.
+
+        :param str nodeUuid:
+            (required) node UUID
+        :return:
+            the node
+        :rtype:
+            `~ngenic.models.node.Node`
+        """
+        url = API_PATH["nodes"].format(tuneUuid=self.uuid(), nodeUuid=nodeUuid)
+        return self._parse_new_instance(url, Node, tune=self)

@@ -13,12 +13,12 @@ class NgenicBase(object):
     def __init__(self, token, json):
         """Initialize our base object.
 
-        :param token: 
+        :param token:
             (required) OAuth2 bearer token
         :param json:
             (required) Json representation of the concrete model
         """
-        
+
         # this will be added to the HTTP Authorization header for each request
         self._token = token
 
@@ -30,11 +30,15 @@ class NgenicBase(object):
 
     def json(self):
         """Get a json representaiton of the model
-        
+
         :return:
 
         """
         return self._json
+
+    def uuid(self):
+        """Get uuid attribute"""
+        return self["uuid"]
 
     def __setitem__(self, attribute, data):
         self._json[attribute] = data
@@ -136,20 +140,21 @@ class NgenicBase(object):
             if requests_ex is not None:
                 server_msg = str(req.status_code)
             pass
-        
+
         return "%s: %s" % (msg, server_msg)
 
     def _delete(self, url, **kwargs):
         LOG.debug("DELETE %s with %s", url, kwargs)
-        return self._request("delete", 
-                             "%s/%s" % (API_URL, url), 
+        return self._request("delete",
+                             "%s/%s" % (API_URL, url),
                              headers=self._auth_headers)
 
     def _get(self, url, **kwargs):
         LOG.debug("GET %s with %s", url, kwargs)
-        return self._request("get", 
-                             "%s/%s" % (API_URL, url), 
-                             headers=self._auth_headers)
+        return self._request("get",
+                             "%s/%s" % (API_URL, url),
+                             headers=self._auth_headers,
+                             **kwargs)
 
     def _post(self, url, data=None, is_json=True, **kwargs):
         headers = self._auth_headers
@@ -163,8 +168,8 @@ class NgenicBase(object):
             headers.update(kwargs.get("headers"))
 
         LOG.debug("POST %s with %s, %s", url, data, kwargs)
-        return self._request("post", 
-                             "%s/%s" % (API_URL, url), 
+        return self._request("post",
+                             "%s/%s" % (API_URL, url),
                              data,
                              headers=self._auth_headers)
 
@@ -180,7 +185,7 @@ class NgenicBase(object):
             headers.update(kwargs.get("headers"))
 
         LOG.debug("PUT %s with %s, %s", url, data, kwargs)
-        return self._request("put", 
-                             "%s/%s" % (API_URL, url), 
+        return self._request("put",
+                             "%s/%s" % (API_URL, url),
                              data,
                              headers=self._auth_headers)

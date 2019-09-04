@@ -4,6 +4,7 @@ API_PATH = {
   "tunes":                  "tunes/{tuneUuid}",
   "rooms":                  "tunes/{tuneUuid}/rooms/{roomUuid}",
   "nodes":                  "tunes/{tuneUuid}/gateway/nodes/{nodeUuid}",
+  "node_status":            "tunes/{tuneUuid}/nodestatus",
   "measurements_types":     "tunes/{tuneUuid}/measurements/{nodeUuid}/types",
   "measurements_latest":    "tunes/{tuneUuid}/measurements/{nodeUuid}/latest"
 }

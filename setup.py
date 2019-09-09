@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 with open("README.md", 'r') as f:
     long_description = f.read()
@@ -12,6 +12,6 @@ setup(
    author='Simon Falkman',
    author_email='sfalkman@gmail.com',
    url="https://github.com/sfalkman/ngenic-py",
-   packages=['ngenicpy'],
+   packages=find_packages(exclude=["tests"]),
    install_requires=['requests']
 )

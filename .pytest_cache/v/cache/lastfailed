@@ -1,5 +1,0 @@
-{
-  "tests/test_ngenic.py": true,
-  "tests/test_ngenic.py::TestCase": true,
-  "tests/test_ngenic.py::TestNgenic": true
-}

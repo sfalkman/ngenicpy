@@ -75,7 +75,7 @@ class NgenicBase(object):
         :return:
             new `instance_class` or `list(instance_class)`
         """
-        if json is not None and (not isinstance(json, dict) and not isinstance(json, list)):
+        if json and (not isinstance(json, dict) and not isinstance(json, list)):
             raise ClientException("Invalid data to create new instance with (expected json)")
         if not json:
             return None
@@ -137,7 +137,7 @@ class NgenicBase(object):
         try:
             server_msg = req.json()["message"]
         except ValueError:
-            if requests_ex is not None:
+            if requests_ex:
                 server_msg = str(req.status_code)
             pass
 
@@ -160,7 +160,7 @@ class NgenicBase(object):
         headers = self._auth_headers
 
         if is_json:
-            data = json.dumps(data) if data is not None else data
+            data = json.dumps(data) if data else data
             headers["Content-Type"] = "application/json"
 
         if "headers" in kwargs:
@@ -177,7 +177,7 @@ class NgenicBase(object):
         headers = self._auth_headers
 
         if is_json:
-            data = json.dumps(data) if data is not None else data
+            data = json.dumps(data) if data else data
             headers["Content-Type"] = "application/json"
 
         if "headers" in kwargs:

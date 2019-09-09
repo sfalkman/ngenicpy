@@ -1,5 +1,5 @@
 from unittest import mock
-from .const import *
+from const import *
 import json
 
 class MockBase(object):

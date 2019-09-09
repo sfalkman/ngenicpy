@@ -13,5 +13,6 @@ setup(
    author_email='sfalkman@gmail.com',
    url="https://github.com/sfalkman/ngenic-py",
    packages=['ngenicpy'],
-   install_requires=['requests']
+   install_requires=['requests'],
+   classifiers=['Programming Language :: Python :: 3']
 )

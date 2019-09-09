@@ -1,4 +1,4 @@
-from .mock_base import MockBase
+from mock_base import MockBase
 from ngenicpy.models import Room
 
 test_json = """

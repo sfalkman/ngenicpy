@@ -1,9 +1,9 @@
 from unittest import mock
 import pytest
 
-from ngenic import Ngenic
-from ngenic.models import Tune
-from ngenic.models import Room
+from ngenicpy import Ngenic
+from ngenicpy.models import Tune
+from ngenicpy.models import Room
 
 from .const import *
 from .mock_tune import MockTune

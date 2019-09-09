@@ -1,5 +1,5 @@
 from .mock_base import MockBase
-from ngenic.models import Room
+from ngenicpy.models import Room
 
 test_json = """
 {

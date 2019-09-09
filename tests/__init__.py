@@ -1,4 +1,4 @@
-from ngenic import Ngenic
+from ngenicpy import Ngenic
 
 class UnitTest:
     """Base class for unit tests."""

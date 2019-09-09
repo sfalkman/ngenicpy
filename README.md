@@ -12,7 +12,7 @@ An API token may be obtained here: https://developer.ngenic.se/
 ```python
 import json
 
-from ngenic import Ngenic
+from ngenicpy import Ngenic
 ng = Ngenic(token="YOUR-API-TOKEN")
 
 tunes = ng.tunes()
@@ -53,7 +53,7 @@ for node in nodes:
             )
     )
 
-    if node_status is not None:
+    if node_status:
         print("Battery: %s\%\nRadio Signal: %s" %
                 (
                     str(node_status.getBatteryPercentage()),

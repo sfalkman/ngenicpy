@@ -1,5 +1,5 @@
 from .mock_base import MockBase
-from ngenic.models import Tune
+from ngenicpy.models import Tune
 
 test_json = """
 {

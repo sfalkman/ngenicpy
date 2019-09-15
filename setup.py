@@ -7,11 +7,17 @@ setup(
    name='ngenicpy',
    version='0.1',
    description='Python package for simple access to Ngenic Tune API',
-   license="Apache License 2.0",
+   license="MIT",
    long_description=long_description,
    author='Simon Falkman',
    author_email='sfalkman@gmail.com',
    url="https://github.com/sfalkman/ngenic-py",
    packages=find_packages(exclude=["tests"]),
-   install_requires=['requests']
+   install_requires=['requests'],
+   classifiers=[
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+    ],
+    python_requires='>=3.6',
 )

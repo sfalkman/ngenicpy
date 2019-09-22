@@ -134,12 +134,16 @@ class NgenicBase(object):
             raise ClientException(self._get_error("An exception occurred", r, requests_ex=exc))
 
     def _get_error(self, msg, req, requests_ex=None):
-        try:
-            server_msg = req.json()["message"]
-        except ValueError:
-            if requests_ex is not None:
-                server_msg = str(req.status_code)
-            pass
+        if req.status_code == 429:
+            # Too many requests
+            server_msg = "Too many requests have been made, retry again after %s" % req.headers["X-RateLimit-Reset"]
+        else:
+            try:
+                server_msg = req.json()["message"]
+            except ValueError:
+                if requests_ex is not None:
+                    server_msg = str(req.status_code)
+                pass
 
         return "%s: %s" % (msg, server_msg)
 

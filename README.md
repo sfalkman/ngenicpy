@@ -8,6 +8,11 @@ It can be used for viewing or edit your Tune configuration.
 ### Obtain an API token
 An API token may be obtained here: https://developer.ngenic.se/
 
+## Installation
+```
+$ pip install ngenicpy
+```
+
 ## Example
 ```python
 import json

@@ -1,7 +1,7 @@
 import json
 from enum import Enum
 from .base import NgenicBase
-from .measurement import Measurement
+from .measurement import Measurement, MeasurementType
 from .node_status import NodeStatus
 from ..const import API_PATH
 from ..exceptions import ClientException
@@ -16,17 +16,30 @@ class Node(NgenicBase):
     def __init__(self, token, json, tune):
         self._parentTune = tune
 
+        # A cache for measurement types
+        self._measurementTypes = None
+
         super(Node, self).__init__(token, json)
 
-    def getType(self):
+    def get_type(self):
         return NodeType(self["type"])
 
     def measurement_types(self):
-        """Get types of available measurements for this node."""
-        url = API_PATH["measurements_types"].format(tuneUuid=self._parentTune.uuid(), nodeUuid=self.uuid())
-        return self._parse(self._get(url))
+        """Get types of available measurements for this node.
 
-    def latest_measurements(self):
+        :return:
+            a list of measurement type enums
+        :rtype:
+            `list(~ngenic.models.measurement.MeasurementType)
+        """
+        if not self._measurementTypes:
+            url = API_PATH["measurements_types"].format(tuneUuid=self._parentTune.uuid(), nodeUuid=self.uuid())
+            measurements = self._parse(self._get(url))
+            self._measurementTypes = list(MeasurementType(m) for m in measurements)
+
+        return self._measurementTypes
+
+    def measurements(self):
         """Get latest measurements for a Node.
         Usually, you can get measurements from a `NodeType.SENSOR` or `NodeType.CONTROLLER`.
 
@@ -39,12 +52,12 @@ class Node(NgenicBase):
         measurement_types = self.measurement_types()
 
         # retrieve measurement for each type
-        return list(self.latest_measurement(t) for t in measurement_types)
+        return list(self.measurement(t) for t in measurement_types)
 
-    def latest_measurement(self, measurement_type):
+    def measurement(self, measurement_type):
         """Get latest measurement for a Node.
 
-        :param str measurement_type:
+        :param MeasurementType measurement_type:
             (required) type of measurement
         :return:
             the node
@@ -52,7 +65,7 @@ class Node(NgenicBase):
             `~ngenic.models.measurement.Measurement`
         """
         url = API_PATH["measurements_latest"].format(tuneUuid=self._parentTune.uuid(), nodeUuid=self.uuid())
-        url += "?type=%s" % measurement_type
+        url += "?type=%s" % measurement_type.value
         return self._parse_new_instance(url, Measurement, node=self, measurement_type=measurement_type)
 
     def status(self):

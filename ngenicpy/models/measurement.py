@@ -17,6 +17,12 @@ class Measurement(NgenicBase):
 
         super(Measurement, self).__init__(token, json)
 
-    def getType(self):
-        """Get the measurement type"""
+    def get_type(self):
+        """Get the measurement type
+
+        :return:
+            measurement type
+        :rtype:
+            `~ngenic.models.measurement.MeasurementType`
+        """
         return self._measurementType

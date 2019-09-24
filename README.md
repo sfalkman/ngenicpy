@@ -66,7 +66,7 @@ for node in nodes:
                 )
         )
 
-    measurements = node.latest_measurements()
+    measurements = node.measurements()
     for measurement in measurements:
         print("%s: %d" %
                 (

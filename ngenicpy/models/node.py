@@ -21,7 +21,7 @@ class Node(NgenicBase):
     def getType(self):
         return NodeType(self["type"])
 
-    def _get_measurement_types(self):
+    def measurement_types(self):
         """Get types of available measurements for this node."""
         url = API_PATH["measurements_types"].format(tuneUuid=self._parentTune.uuid(), nodeUuid=self.uuid())
         return self._parse(self._get(url))
@@ -36,7 +36,7 @@ class Node(NgenicBase):
             `list(~ngenic.models.measurement.Measurement)`
         """
         # get available measurement types for this node
-        measurement_types = self._get_measurement_types()
+        measurement_types = self.measurement_types()
 
         # retrieve measurement for each type
         return list(self.latest_measurement(t) for t in measurement_types)

@@ -1,6 +1,14 @@
 import json
+from enum import Enum
 from .base import NgenicBase
 from ..const import API_PATH
+
+# Undocumented in API
+class MeasurementType(Enum):
+    TEMPERATURE = "temperature_C"
+    TARGET_TEMPERATURE = "target_temperature_C"
+    HUMIDITY = "humidity_relative_percent"
+    CONTROL_VALUE = "control_value_C"
 
 class Measurement(NgenicBase):
     def __init__(self, token, json, node, measurement_type):

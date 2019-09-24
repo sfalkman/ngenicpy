@@ -54,15 +54,15 @@ for node in nodes:
     print("Node %s\nType: %s" %
             (
                 node.uuid(),
-                node.getType()
+                node.get_type()
             )
     )
 
     if node_status:
         print("Battery: %s\%\nRadio Signal: %s" %
                 (
-                    str(node_status.getBatteryPercentage()),
-                    str(node_status.getRadioSignalPercentage())
+                    str(node_status.battery_percentage()),
+                    str(node_status.radio_signal_percentage())
                 )
         )
 
@@ -70,7 +70,7 @@ for node in nodes:
     for measurement in measurements:
         print("%s: %d" %
                 (
-                    measurement.getType(),
+                    measurement.get_type(),
                     measurement["value"]
                 )
         )

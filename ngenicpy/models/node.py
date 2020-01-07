@@ -54,29 +54,15 @@ class Node(NgenicBase):
         # retrieve measurement for each type
         return list(self.measurement(t) for t in measurement_types)
 
-    def measurement(self, measurement_type):
-        """Get latest measurement for a Node.
-
-        :param MeasurementType measurement_type:
-            (required) type of measurement
-        :return:
-            the measurement
-        :rtype:
-            `~ngenic.models.measurement.Measurement`
-        """
-        url = API_PATH["measurements_latest"].format(tuneUuid=self._parentTune.uuid(), nodeUuid=self.uuid())
-        url += "?type=%s" % measurement_type.value
-        return self._parse_new_instance(url, Measurement, node=self, measurement_type=measurement_type)
-
-    def measurement(self, measurement_type, from_dt, to_dt, period=None):
+    def measurement(self, measurement_type, from_dt=None, to_dt=None, period=None):
         """Get measurement for a specific period.
 
         :param MeasurementType measurement_type:
             (required) type of measurement
         :param from_dt:
-            (required) from datetime (ISO 8601:2004)
+            (optional) from datetime (ISO 8601:2004)
         :param to_dt:
-            (required) to datetime (ISO 8601:2004)
+            (optional) to datetime (ISO 8601:2004)
         :param period:
             Divides measurement interval into periods, default is a single period over entire interval.
             (ISO 8601:2004 duration format)
@@ -85,11 +71,16 @@ class Node(NgenicBase):
         :rtype:
             `list(~ngenic.models.measurement.Measurement)`
         """
-        url = API_PATH["measurements"].format(tuneUuid=self._parentTune.uuid(), nodeUuid=self.uuid())
-        url += "?type=%s&from=%s&to=%s" % (measurement_type.value, from_dt, to_dt)
-        if period:
-            url += "&period=%s" % period
-        return self._parse_new_instance(url, Measurement, node=self, measurement_type=measurement_type)
+        if from_dt is None:
+            url = API_PATH["measurements_latest"].format(tuneUuid=self._parentTune.uuid(), nodeUuid=self.uuid())
+            url += "?type=%s" % measurement_type.value
+            return self._parse_new_instance(url, Measurement, node=self, measurement_type=measurement_type)
+        else:
+            url = API_PATH["measurements"].format(tuneUuid=self._parentTune.uuid(), nodeUuid=self.uuid())
+            url += "?type=%s&from=%s&to=%s" % (measurement_type.value, from_dt, to_dt)
+            if period:
+                url += "&period=%s" % period
+            return self._parse_new_instance(url, Measurement, node=self, measurement_type=measurement_type)
 
     def status(self):
         """Get status about this Node

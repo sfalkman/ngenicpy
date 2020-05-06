@@ -14,3 +14,10 @@ class Room(NgenicBase):
 
         url = API_PATH["rooms"].format(tuneUuid=self._parentTune.uuid(), roomUuid=roomUuid)
         self._put(url, data=self.json())
+
+    async def async_update(self):
+        """Update this room with its current values (async)"""
+        roomUuid = self["uuid"]
+
+        url = API_PATH["rooms"].format(tuneUuid=self._parentTune.uuid(), roomUuid=roomUuid)
+        await self._async_put(url, data=self.json())

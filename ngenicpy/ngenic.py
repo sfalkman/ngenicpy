@@ -8,7 +8,6 @@ from .const import API_URL
 from .exceptions import ApiException, ClientException
 
 import logging
-import requests
 import json
 
 LOG = logging.getLogger(__package__)
@@ -28,6 +27,17 @@ class Ngenic(NgenicBase):
         url = API_PATH["tunes"].format(tuneUuid="")
         return self._parse_new_instance(url, Tune)
 
+    async def async_tunes(self):
+        """Fetch all tunes (async)
+
+        :return:
+            a list of tunes
+        :rtype:
+            `list(~ngenic.models.tune.Tune)`
+        """
+        url = API_PATH["tunes"].format(tuneUuid="")
+        return await self._async_parse_new_instance(url, Tune)
+
     def tune(self, tuneUuid):
         """Fetch a single tune
 
@@ -40,3 +50,16 @@ class Ngenic(NgenicBase):
         """
         url = API_PATH["tunes"].format(tuneUuid=tuneUuid)
         return self._parse_new_instance(url, Tune)
+
+    def async_tune(self, tuneUuid):
+        """Fetch a single tune
+
+        :param str tuneUUid:
+            (required) tune UUID
+        :return:
+            the tune
+        :rtype:
+            `~ngenic.models.tune.Tune`
+        """
+        url = API_PATH["tunes"].format(tuneUuid=tuneUuid)
+        return self._async_parse_new_instance(url, Tune)

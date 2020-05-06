@@ -9,6 +9,8 @@ class MeasurementType(Enum):
     TARGET_TEMPERATURE = "target_temperature_C"
     HUMIDITY = "humidity_relative_percent"
     CONTROL_VALUE = "control_value_C"
+    POWER_KW = "power_kW"
+    ENERGY_KWH = "energi_kWH"
 
 class Measurement(NgenicBase):
     def __init__(self, token, json, node, measurement_type):

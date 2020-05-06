@@ -2,6 +2,8 @@
 This python package simplifies access to the Ngenic Tune API.
 It can be used for viewing or edit your Tune configuration.
 
+Both sync and async APIs are provided - async APIs are prefixed with `async_`.
+
 **NOTE**: This API wrapper is not yet finished, and only implements a subset of all the APIs. The interface may very well change.
 
 ## Prerequisite
@@ -74,6 +76,24 @@ for node in nodes:
                     measurement["value"]
                 )
         )
+```
+
+Async example
+```python
+import json
+
+from ngenicpy import Ngenic
+ng = Ngenic(token="YOUR-API-TOKEN")
+
+tunes = await ng.async_tunes()
+for tune in tunes:
+    print("Tune %s\nName: %s\nTune Name: %s" %
+            (
+                tune.uuid(),
+                tune["name"],
+                tune["tuneName"]
+            )
+    )
 ```
 
 ## Reference

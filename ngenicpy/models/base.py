@@ -1,6 +1,6 @@
 import json
 import logging
-import requests
+import httpx
 
 from ..exceptions import ClientException, ApiException
 from ..const import API_URL
@@ -102,6 +102,23 @@ class NgenicBase(object):
         ret_json = self._parse(self._get(url))
         return self._new_instance(instance_class, ret_json, **kwargs)
 
+    async def _async_parse_new_instance(self, url, instance_class, **kwargs):
+        """Get JSON from an URL and create a new instance of it
+
+        :param str url:
+            (required) url to get instance data from
+        :param class instance_class:
+            (required) class of instance to initialize with parsed data
+        :param kwargs:
+            may contain additional args to the instance class
+        :return:
+            new `instance_class`
+        :rtype:
+            `instance_class`
+        """
+        ret_json = self._parse(await self._async_get(url))
+        return self._new_instance(instance_class, ret_json, **kwargs)
+
     def _request(self, method, *args, **kwargs):
         """Make a HTTP request.
         This is the generic method for all requests, it will handle errors etc in a common way.
@@ -115,41 +132,88 @@ class NgenicBase(object):
         :return:
             request
         """
+        r = None
         try:
-            request_method = getattr(requests, method)
+            request_method = getattr(httpx, method)
             r = request_method(*args, **kwargs)
 
             # raise for e.g. 401
             r.raise_for_status()
 
             return r
-        except (
-            requests.exceptions.ConnectionError,
-            requests.exceptions.Timeout,
-        ) as exc:
-            raise ClientException(self._get_error("A connection error occurred", r, requests_ex=exc))
-        except requests.exceptions.RequestException as exc:
-            raise ClientException(self._get_error("A request exception occurred", r, requests_ex=exc))
+        except httpx.HTTPError as exc:
+            raise ClientException(self._get_error("A request exception occurred", r, parent_ex=exc))
         except Exception as exc:
-            raise ClientException(self._get_error("An exception occurred", r, requests_ex=exc))
+            raise ClientException(self._get_error("An exception occurred", r, parent_ex=exc))
 
-    def _get_error(self, msg, req, requests_ex=None):
-        if req.status_code == 429:
+    async def _async_request(self, method, *args, **kwargs):
+        """Make a HTTP request (async).
+        This is the generic method for all requests, it will handle errors etc in a common way.
+
+        :param str method:
+            (required) HTTP method (i.e get, post, delete)
+        :param args:
+            Additional args to requests lib
+        :param kwargs:
+            Additional kwargs to requests lib
+        :return:
+            request
+        """
+        r = None
+        try:
+            async with httpx.AsyncClient() as client:
+                request_method = getattr(client, method)
+                r = await request_method(*args, **kwargs)
+
+                # raise for e.g. 401
+                r.raise_for_status()
+
+                return r
+        except httpx.HTTPError as exc:
+            raise ClientException(self._get_error("A request exception occurred", r, parent_ex=exc))
+        except Exception as exc:
+            raise ClientException(self._get_error("An exception occurred", r, parent_ex=exc))
+
+    def _get_error(self, msg, req, parent_ex=None):
+        if req is not None and req.status_code == 429:
             # Too many requests
             server_msg = "Too many requests have been made, retry again after %s" % req.headers["X-RateLimit-Reset"]
         else:
             try:
                 server_msg = req.json()["message"]
-            except ValueError:
-                if requests_ex is not None:
+            except:
+                if req is not None:
                     server_msg = str(req.status_code)
+                elif parent_ex is not None:
+                    server_msg = str(parent_ex)
+                else:
+                    server_msg = "Unknown error"
                 pass
 
         return "%s: %s" % (msg, server_msg)
 
+    def _prehandle_write(self, data, is_json, **kwargs):
+        headers = self._auth_headers.copy()
+
+        if is_json:
+            data = json.dumps(data) if data is not None else data
+            headers["Content-Type"] = "application/json"
+
+        if "headers" in kwargs:
+            # let caller override headers
+            headers.update(kwargs.get("headers"))
+
+        return (data, headers)
+
     def _delete(self, url, **kwargs):
         LOG.debug("DELETE %s with %s", url, kwargs)
         return self._request("delete",
+                             "%s/%s" % (API_URL, url),
+                             headers=self._auth_headers)
+                            
+    def _async_delete(self, url, **kwargs):
+        LOG.debug("DELETE %s with %s", url, kwargs)
+        return self._async_request("delete",
                              "%s/%s" % (API_URL, url),
                              headers=self._auth_headers)
 
@@ -160,36 +224,45 @@ class NgenicBase(object):
                              headers=self._auth_headers,
                              **kwargs)
 
+    async def _async_get(self, url, **kwargs):
+        LOG.debug("GET %s with %s", url, kwargs)
+        return await self._async_request("get",
+                             "%s/%s" % (API_URL, url),
+                             headers=self._auth_headers,
+                             **kwargs)
+
     def _post(self, url, data=None, is_json=True, **kwargs):
-        headers = self._auth_headers
-
-        if is_json:
-            data = json.dumps(data) if data is not None else data
-            headers["Content-Type"] = "application/json"
-
-        if "headers" in kwargs:
-            # let caller override headers
-            headers.update(kwargs.get("headers"))
+        data, headers = self._prehandle_write(data, is_json, kwargs)
 
         LOG.debug("POST %s with %s, %s", url, data, kwargs)
         return self._request("post",
                              "%s/%s" % (API_URL, url),
-                             data,
-                             headers=self._auth_headers)
+                             data=data,
+                             headers=headers)
+
+    def _async_post(self, url, data=None, is_json=True, **kwargs):
+        data, headers = self._prehandle_write(data, is_json, kwargs)
+
+        LOG.debug("POST %s with %s, %s", url, data, kwargs)
+        return self._async_request("post",
+                             "%s/%s" % (API_URL, url),
+                             data=data,
+                             headers=headers)
 
     def _put(self, url, data=None, is_json=True, **kwargs):
-        headers = self._auth_headers
-
-        if is_json:
-            data = json.dumps(data) if data is not None else data
-            headers["Content-Type"] = "application/json"
-
-        if "headers" in kwargs:
-            # let caller override headers
-            headers.update(kwargs.get("headers"))
-
+        data, headers = self._prehandle_write(data, is_json, **kwargs)
+        
         LOG.debug("PUT %s with %s, %s", url, data, kwargs)
         return self._request("put",
                              "%s/%s" % (API_URL, url),
-                             data,
-                             headers=self._auth_headers)
+                             data=data,
+                             headers=headers)
+
+    def _async_put(self, url, data=None, is_json=True, **kwargs):
+        data, headers = self._prehandle_write(data, is_json, **kwargs)
+        
+        LOG.debug("PUT %s with %s, %s", url, data, kwargs)
+        return self._async_request("put",
+                             "%s/%s" % (API_URL, url),
+                             data=data,
+                             headers=headers)

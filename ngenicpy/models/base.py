@@ -53,13 +53,17 @@ class NgenicBase(object):
 
     def _parse(self, response):
         rsp_json = None
+
         if response is None:
+            return None
+
+        if response.status_code == 204:
             return None
 
         try:
             rsp_json = response.json()
         except ValueError:
-            raise ApiException("Ngenic API return an invalid json body")
+            raise ApiException("Ngenic API return an invalid json body (status=%d)" % response.status_code)
 
         return rsp_json
 

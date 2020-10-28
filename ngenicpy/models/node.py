@@ -100,7 +100,8 @@ class Node(NgenicBase):
             Divides measurement interval into periods, default is a single period over entire interval.
             (ISO 8601:2004 duration format)
         :return:
-            the measurement
+            the measurement.
+            if no data is available for the period, None will be returned.
         :rtype:
             `list(~ngenic.models.measurement.Measurement)`
         """
@@ -128,7 +129,8 @@ class Node(NgenicBase):
             Divides measurement interval into periods, default is a single period over entire interval.
             (ISO 8601:2004 duration format)
         :return:
-            the measurement
+            the measurement.
+            if no data is available for the period, None will be returned.
         :rtype:
             `list(~ngenic.models.measurement.Measurement)`
         """

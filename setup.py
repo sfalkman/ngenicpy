@@ -14,7 +14,7 @@ setup(
    author_email='sfalkman@gmail.com',
    url="https://github.com/sfalkman/ngenic-py",
    packages=find_packages(exclude=["tests"]),
-   install_requires=['httpx>=0.12,<0.13'],
+   install_requires=['httpx>=0.16'],
    classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",

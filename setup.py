@@ -5,7 +5,7 @@ with open("README.md", 'r') as f:
 
 setup(
    name='ngenicpy',
-   version='0.2.1',
+   version='0.2.2',
    description='Python package for simple access to Ngenic Tune API',
    license="MIT",
    long_description=long_description,
@@ -14,7 +14,7 @@ setup(
    author_email='sfalkman@gmail.com',
    url="https://github.com/sfalkman/ngenic-py",
    packages=find_packages(exclude=["tests"]),
-   install_requires=['httpx>=0.12,<0.13'],
+   install_requires=['httpx>=0.16'],
    classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",

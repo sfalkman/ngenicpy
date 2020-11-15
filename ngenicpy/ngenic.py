@@ -14,7 +14,7 @@ import httpx
 LOG = logging.getLogger(__package__)
 
 # 30sec for connect, 10sec elsewhere.
-timeout = httpx.Timeout(10.0, connect=2.0)
+timeout = httpx.Timeout(10.0, connect=20.0)
 
 class BaseClient(NgenicBase):
     def __init(self, session):

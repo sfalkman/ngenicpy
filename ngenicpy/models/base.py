@@ -10,24 +10,21 @@ LOG = logging.getLogger(__package__)
 class NgenicBase(object):
     """Superclass for all models"""
 
-    def __init__(self, token, json):
+    def __init__(self, session=None, json=None):
         """Initialize our base object.
 
-        :param token:
-            (required) OAuth2 bearer token
+        :param session:
+            (required) httpx client
         :param json:
             (required) Json representation of the concrete model
         """
 
-        # this will be added to the HTTP Authorization header for each request
-        self._token = token
-
-        # this header will be added to each HTTP request
-        self._auth_headers = {"Authorization": "Bearer %s" % self._token}
+        # store the httpx session on each object so we can reuse the connection
+        self._session = session
 
         # backing json of the model
         self._json = json
-
+    
     def json(self):
         """Get a json representaiton of the model
 
@@ -85,9 +82,9 @@ class NgenicBase(object):
             return None
 
         if isinstance(json, list):
-            return list(instance_class(self._token, x, **kwargs) for x in json)
+            return list(instance_class(session=self._session, json=inst_json, **kwargs) for inst_json in json)
         else:
-            return instance_class(self._token, json, **kwargs)
+            return instance_class(session=self._session, json=json, **kwargs)
 
     def _parse_new_instance(self, url, instance_class, **kwargs):
         """Get JSON from an URL and create a new instance of it
@@ -138,9 +135,12 @@ class NgenicBase(object):
         """
         r = None
         try:
-            request_method = getattr(httpx, method)
-            r = request_method(*args, **kwargs)
+            if not isinstance(self._session, httpx.Client):
+                raise ValueError("Cannot use sync methods when context is async")
 
+            request_method = getattr(self._session, method)
+            r = request_method(*args, **kwargs)
+            
             # raise for e.g. 401
             r.raise_for_status()
 
@@ -165,14 +165,16 @@ class NgenicBase(object):
         """
         r = None
         try:
-            async with httpx.AsyncClient() as client:
-                request_method = getattr(client, method)
-                r = await request_method(*args, **kwargs)
+            if not isinstance(self._session, httpx.AsyncClient):
+                raise ValueError("Cannot use async methods when context is sync")
 
-                # raise for e.g. 401
-                r.raise_for_status()
+            request_method = getattr(self._session, method)
+            r = await request_method(*args, **kwargs)
+            
+            # raise for e.g. 401
+            r.raise_for_status()
 
-                return r
+            return r
         except httpx.HTTPError as exc:
             raise ClientException(self._get_error("A request exception occurred", r, parent_ex=exc))
         except Exception as exc:
@@ -189,7 +191,13 @@ class NgenicBase(object):
                 if req is not None:
                     server_msg = str(req.status_code)
                 elif parent_ex is not None:
-                    server_msg = str(parent_ex)
+                    if isinstance(parent_ex, httpx.ConnectTimeout):
+                        server_msg = "Timed out connecting to ngenic server"
+                        
+                    elif isinstance(parent_ex, httpx.ConnectTimeout):
+                        server_msg = "Timed out sending request to ngenic server"
+                    else:
+                        server_msg = str(parent_ex)
                 else:
                     server_msg = "Unknown error"
                 pass
@@ -197,7 +205,7 @@ class NgenicBase(object):
         return "%s: %s" % (msg, server_msg)
 
     def _prehandle_write(self, data, is_json, **kwargs):
-        headers = self._auth_headers.copy()
+        headers = {}
 
         if is_json:
             data = json.dumps(data) if data is not None else data
@@ -212,27 +220,23 @@ class NgenicBase(object):
     def _delete(self, url, **kwargs):
         LOG.debug("DELETE %s with %s", url, kwargs)
         return self._request("delete",
-                             "%s/%s" % (API_URL, url),
-                             headers=self._auth_headers)
+                             "%s/%s" % (API_URL, url))
                             
     def _async_delete(self, url, **kwargs):
         LOG.debug("DELETE %s with %s", url, kwargs)
         return self._async_request("delete",
-                             "%s/%s" % (API_URL, url),
-                             headers=self._auth_headers)
+                             "%s/%s" % (API_URL, url))
 
     def _get(self, url, **kwargs):
         LOG.debug("GET %s with %s", url, kwargs)
         return self._request("get",
                              "%s/%s" % (API_URL, url),
-                             headers=self._auth_headers,
                              **kwargs)
 
     async def _async_get(self, url, **kwargs):
         LOG.debug("GET %s with %s", url, kwargs)
         return await self._async_request("get",
                              "%s/%s" % (API_URL, url),
-                             headers=self._auth_headers,
                              **kwargs)
 
     def _post(self, url, data=None, is_json=True, **kwargs):

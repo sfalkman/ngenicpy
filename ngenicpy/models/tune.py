@@ -5,8 +5,8 @@ from .node import Node
 from ..const import API_PATH
 
 class Tune(NgenicBase):
-    def __init__(self, token, json):
-        super(Tune, self).__init__(token, json)
+    def __init__(self, session, json):
+        super(Tune, self).__init__(session=session, json=json)
 
     def uuid(self):
         """Get the tune UUID"""

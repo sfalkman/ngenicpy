@@ -3,10 +3,10 @@ from .base import NgenicBase
 from ..const import API_PATH
 
 class NodeStatus(NgenicBase):
-    def __init__(self, token, json, node):
+    def __init__(self, session, json, node):
         self._parentNode = node
 
-        super(NodeStatus, self).__init__(token, json)
+        super(NodeStatus, self).__init__(session=session, json=json)
 
     def battery_percentage(self):
         if self["maxBattery"] == 0:

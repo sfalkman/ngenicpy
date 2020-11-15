@@ -14,13 +14,13 @@ class NodeType(Enum):
     INTERNAL = 3
 
 class Node(NgenicBase):
-    def __init__(self, token, json, tune):
+    def __init__(self, session, json, tune):
         self._parentTune = tune
 
         # A cache for measurement types
         self._measurementTypes = None
 
-        super(Node, self).__init__(token, json)
+        super(Node, self).__init__(session=session, json=json)
 
     def get_type(self):
         return NodeType(self["type"])
@@ -67,7 +67,11 @@ class Node(NgenicBase):
         # get available measurement types for this node
         measurement_types = self.measurement_types()
 
-        # retrieve measurement for each type
+        # remove types that doesn't support reading from latest API
+        if MeasurementType.ENERGY_KWH in measurement_types:
+            measurement_types.remove(MeasurementType.ENERGY_KWH)
+
+        # retrieve latest measurement for each type
         return list(self.measurement(t) for t in measurement_types)
 
     async def async_measurements(self):
@@ -80,11 +84,18 @@ class Node(NgenicBase):
             `list(~ngenic.models.measurement.Measurement)`
         """
         # get available measurement types for this node
-        measurement_types = self.async_measurement_types()
+        measurement_types = await self.async_measurement_types()
+        
+        # remove types that doesn't support reading from latest API
+        if MeasurementType.ENERGY_KWH in measurement_types:
+            measurement_types.remove(MeasurementType.ENERGY_KWH)
 
-        # retrieve measurement for each type
+        if len(measurement_types) == 0:
+            return list()
+
+        # retrieve latest measurement for each type
         return list(await asyncio.gather(
-            self.async_measurement(t) for t in measurement_types
+            *[self.async_measurement(t) for t in measurement_types]
         ))
 
     def measurement(self, measurement_type, from_dt=None, to_dt=None, period=None):

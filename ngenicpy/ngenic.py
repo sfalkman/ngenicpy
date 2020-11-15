@@ -9,12 +9,16 @@ from .exceptions import ApiException, ClientException
 
 import logging
 import json
+import httpx
 
 LOG = logging.getLogger(__package__)
 
-class Ngenic(NgenicBase):
-    def __init__(self, token):
-        super(Ngenic, self).__init__(token, json)
+# 30sec for connect, 10sec elsewhere.
+timeout = httpx.Timeout(10.0, connect=20.0)
+
+class BaseClient(NgenicBase):
+    def __init(self, session):
+        super(BaseClient, self).__init__(session=session)
 
     def tunes(self):
         """Fetch all tunes
@@ -63,3 +67,61 @@ class Ngenic(NgenicBase):
         """
         url = API_PATH["tunes"].format(tuneUuid=tuneUuid)
         return self._async_parse_new_instance(url, Tune)
+    
+class Ngenic(BaseClient):
+    def __init__(self, token):
+        """Initialize an ngenic object.
+
+        :param token:
+            (required) OAuth2 bearer token
+        """
+
+        # this will be added to the HTTP Authorization header for each request
+        self._token = token
+
+        # this header will be added to each HTTP request
+        self._auth_headers = {"Authorization": "Bearer %s" % self._token}
+
+        session = httpx.Client(headers=self._auth_headers, timeout=timeout) 
+
+        # initializing this doesn't require a session or json
+        super(Ngenic, self).__init__(session=session)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.close()
+
+    def close(self):
+        """Close the session if it was not created as a context manager"""
+        self._session.close()
+
+class AsyncNgenic(BaseClient):
+    def __init__(self, token):
+        """Initialize an async ngenic object.
+
+        :param token:
+            (required) OAuth2 bearer token
+        """
+
+        # this will be added to the HTTP Authorization header for each request
+        self._token = token
+
+        # this header will be added to each HTTP request
+        self._auth_headers = {"Authorization": "Bearer %s" % self._token}
+
+        session = httpx.AsyncClient(headers=self._auth_headers, timeout=timeout) 
+
+        # initializing this doesn't require a session or json
+        super(AsyncNgenic, self).__init__(session=session)
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *args):
+        await self.async_close()
+
+    async def async_close(self):
+        """Close the session if it was not created as a context manager"""
+        await self._session.aclose()

@@ -3,10 +3,10 @@ from .base import NgenicBase
 from ..const import API_PATH
 
 class Room(NgenicBase):
-    def __init__(self, token, json, tune):
+    def __init__(self, session, json, tune):
         self._parentTune = tune
 
-        super(Room, self).__init__(token, json)
+        super(Room, self).__init__(session=session, json=json)
 
     def update(self):
         """Update this room with its current values"""

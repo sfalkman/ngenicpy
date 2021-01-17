@@ -8,10 +8,15 @@ from ..const import API_PATH
 from ..exceptions import ClientException
 
 class NodeType(Enum):
+    UNKNOWN = -1
     SENSOR = 0
     CONTROLLER = 1
     GATEWAY = 2
     INTERNAL = 3
+
+    @classmethod
+    def _missing_(cls, value):
+        return cls.UNKNOWN
 
 class Node(NgenicBase):
     def __init__(self, session, json, tune):

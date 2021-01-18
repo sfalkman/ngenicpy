@@ -5,6 +5,7 @@ from ..const import API_PATH
 
 # Undocumented in API
 class MeasurementType(Enum):
+    UNKNOWN = "unknown"
     TEMPERATURE = "temperature_C"
     TARGET_TEMPERATURE = "target_temperature_C"
     HUMIDITY = "humidity_relative_percent"
@@ -14,6 +15,10 @@ class MeasurementType(Enum):
     FLOW = "flow_litre_per_hour"
     INLET_FLOW_TEMPERATURE = "inlet_flow_temperature_C"
     RETURN_TEMPERATURE = "return_temperature_C"
+
+    @classmethod
+    def _missing_(cls, value):
+        return cls.UNKNOWN
 
 class Measurement(NgenicBase):
     def __init__(self, session, json, node, measurement_type):

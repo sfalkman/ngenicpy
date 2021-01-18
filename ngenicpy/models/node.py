@@ -72,12 +72,15 @@ class Node(NgenicBase):
         # get available measurement types for this node
         measurement_types = self.measurement_types()
 
-        # remove types that doesn't support reading from latest API
+        # remove types that doesn't support reading from /latest API
         if MeasurementType.ENERGY_KWH in measurement_types:
             measurement_types.remove(MeasurementType.ENERGY_KWH)
 
         # retrieve latest measurement for each type
-        return list(self.measurement(t) for t in measurement_types)
+        latest_measurements = list(self.measurement(t) for t in measurement_types)
+    
+        # remove None measurements (caused by measurement types returning empty response)
+        return list(m for m in latest_measurements if m)
 
     async def async_measurements(self):
         """Get latest measurements for a Node (async).

@@ -13,6 +13,7 @@ class NodeType(Enum):
     CONTROLLER = 1
     GATEWAY = 2
     INTERNAL = 3
+    ROUTER = 4
 
     @classmethod
     def _missing_(cls, value):

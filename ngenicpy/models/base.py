@@ -150,12 +150,15 @@ class NgenicBase(object):
         except Exception as exc:
             raise ClientException(self._get_error("An exception occurred", r, parent_ex=exc))
 
-    async def _async_request(self, method, *args, **kwargs):
+    async def _async_request(self, method, is_retry, *args, **kwargs):
         """Make a HTTP request (async).
         This is the generic method for all requests, it will handle errors etc in a common way.
 
         :param str method:
             (required) HTTP method (i.e get, post, delete)
+        :param bool is_retry:
+            Indicator if this execution is a retry.
+            This is a temporary fix for retrying broken connections.
         :param args:
             Additional args to requests lib
         :param kwargs:
@@ -175,6 +178,14 @@ class NgenicBase(object):
             r.raise_for_status()
 
             return r
+        except httpx.CloseError as exc:
+            if is_retry:
+                # only retry once
+                raise ClientException(self._get_error("A request exception occurred", r, parent_ex=exc))
+            else:
+                # retry request
+                LOG.debug("Got a CloseError while trying to send request. Retry request once.")
+                return await self._async_request(method, True, *args, **kwargs)
         except httpx.HTTPError as exc:
             raise ClientException(self._get_error("A request exception occurred", r, parent_ex=exc))
         except Exception as exc:
@@ -225,6 +236,7 @@ class NgenicBase(object):
     def _async_delete(self, url, **kwargs):
         LOG.debug("DELETE %s with %s", url, kwargs)
         return self._async_request("delete",
+                             False,
                              "%s/%s" % (API_URL, url))
 
     def _get(self, url, **kwargs):
@@ -236,6 +248,7 @@ class NgenicBase(object):
     async def _async_get(self, url, **kwargs):
         LOG.debug("GET %s with %s", url, kwargs)
         return await self._async_request("get",
+                             False,
                              "%s/%s" % (API_URL, url),
                              **kwargs)
 
@@ -253,6 +266,7 @@ class NgenicBase(object):
 
         LOG.debug("POST %s with %s, %s", url, data, kwargs)
         return self._async_request("post",
+                             False,
                              "%s/%s" % (API_URL, url),
                              data=data,
                              headers=headers)
@@ -271,6 +285,7 @@ class NgenicBase(object):
         
         LOG.debug("PUT %s with %s, %s", url, data, kwargs)
         return self._async_request("put",
+                             False,
                              "%s/%s" % (API_URL, url),
                              data=data,
                              headers=headers)

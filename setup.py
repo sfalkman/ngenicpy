@@ -5,7 +5,7 @@ with open("README.md", 'r') as f:
 
 setup(
    name='ngenicpy',
-   version='0.3.2',
+   version='0.3.3',
    description='Python package for simple access to Ngenic Tune API',
    license="MIT",
    long_description=long_description,
